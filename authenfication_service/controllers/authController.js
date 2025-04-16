@@ -8,7 +8,12 @@ const JWT_EXPIRES_IN = "1d";
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
+
+    if (!['patient', 'medecin'].includes(role)) {
+        return res.status(400).json({ message: "Rôle invalide" });
+      }
+  
 
     // Check if user already exists
     const existing = await User.findOne({ email });
@@ -19,7 +24,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Save user
-    const newUser = new User({ username, email, password: hashedPassword });
+    const newUser = new User({ username, email, password: hashedPassword , role });
     await newUser.save();
 
     res.status(201).json({ message: "User registered successfully" });

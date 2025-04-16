@@ -18,6 +18,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 6
+  },
+  role: {
+    type: String,
+    enum: ['patient', 'medecin'], 
+    required: true
   }
 }, { timestamps: true });
 

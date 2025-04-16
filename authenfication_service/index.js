@@ -8,9 +8,9 @@ const authRoutes = require('./routes/auth');
 app.use(express.json());
 app.use(cors());
 
-const MONGO_URI = 'mongodb://localhost:27017/oc-auth-service';
+const MONGO_URI = 'mongodb://localhost:27017/auth-medcine';
 
-const PORT = 5000;
+const PORT = 5001;
 
 
 mongoose.connect(MONGO_URI)
