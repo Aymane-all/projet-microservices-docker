@@ -12,10 +12,13 @@ const MONGO_URI = 'mongodb://localhost:27017/auth-medcine';
 
 const PORT = 5001;
 
-
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log("DB connection error", err));
+  .catch(err => {
+    console.error("Erreur de connexion à MongoDB:", err);
+    process.exit(1);  // Quitter l'application si la connexion échoue
+  });
+
 
 // Use auth routes
 app.use('/api/auth', authRoutes);
