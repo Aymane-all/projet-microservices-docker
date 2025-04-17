@@ -1,248 +1,165 @@
-import Appointment from "../models/appointment.js"
-import axios from "axios"
-import { publishMessage } from "../utils/rabbitmq.js"
+const  Rendezvous  = require('../models/rendez-vous');
+const axios = require('axios');
+const mongoose = require('mongoose');
 
-const DOCTORS_SERVICE_URL = process.env.DOCTORS_SERVICE_URL || "http://localhost:8000/api"
-
-// Book a new appointment
-export const bookAppointment = async (req, res) => {
+// Book an appointment
+exports.priserRendezvous = async (req, res) => {
   try {
-    const { doctorId, availabilityId, date, startTime, endTime } = req.body
+    const {userId ,patientId, medcinId, availabilityId, datedebut, datefin } = req.body;
 
-    // Ensure patient can only book for themselves
-    if (req.user.role !== "patient") {
-      return res.status(403).json({ message: "Only patients can book appointments" })
+    // Validate required fields
+    if (userId,!patientId || !medcinId || !availabilityId || !datedebut || !datefin) {
+      return res.status(400).json({ message: 'veuillez remplir tous les champs' });
     }
 
-    // Check if availability exists and is not booked
-    try {
-      const availabilityResponse = await axios.get(`${DOCTORS_SERVICE_URL}/doctors/${doctorId}/availabilities`, {
-        headers: { Authorization: req.headers.authorization },
-      })
-
-      const availability = availabilityResponse.data.find((a) => a.id.toString() === availabilityId && !a.is_booked)
-
-      if (!availability) {
-        return res.status(400).json({ message: "Availability not found or already booked" })
-      }
-    } catch (error) {
-      console.error("Error checking availability:", error)
-      return res.status(500).json({ message: "Error checking availability" })
+    if (new Date(datefin) <= new Date(datedebut)) {
+      return res.status(400).json({ message: 'La date de fin doit être plus grand que la date de debut' });
     }
 
-    // Create appointment
-    const appointment = new Appointment({
-      patientId: req.user.id,
-      doctorId,
+    // Check availability with availability service
+    // try {
+    //   const availabilityResponse = await axios.get(
+    //     `http://localhost:8000/api/availability/${availabilityId}`
+    //   );
+      
+    //   if (!availabilityResponse.data.isAvailable) {
+    //     return res.status(400).json({ message: 'Le creneau horaire selectionne ne est pas disponible' });
+    //   }
+    // } catch (error) {
+    //   return res.status(500).json({ message: 'Error de la disponibilite', error: error.message });
+    // }
+
+    const isAvailable = true; 
+
+    if (!isAvailable) {
+      return res.status(400).json({ message: 'Le creneau horaire selectionne ne est pas disponible' });
+    } else {
+      console.log('Le creneau horaire selectionne est disponible');
+    }
+
+
+    // Create new appointment
+    const appointment = new Rendezvous({
+      userId,
+      patientId,
+      medcinId,
       availabilityId,
-      date,
-      startTime,
-      endTime,
-      status: "scheduled",
-    })
+      datedebut,
+      datefin,
+    });
 
-    await appointment.save()
+    await appointment.save();
 
-    // Update availability status in Doctors Service
-    try {
-      await axios.patch(
-        `${DOCTORS_SERVICE_URL}/availabilities/${availabilityId}`,
-        { is_booked: true, appointment_id: appointment._id },
-        {
-          headers: { Authorization: req.headers.authorization },
-        },
-      )
-    } catch (error) {
-      console.error("Error updating availability:", error)
-      // If updating availability fails, delete the appointment
-      await Appointment.findByIdAndDelete(appointment._id)
-      return res.status(500).json({ message: "Error updating availability" })
-    }
 
-    // Publish appointment.booked event
-    await publishMessage("appointment.booked", {
-      appointmentId: appointment._id,
-      patientId: req.user.id,
-      doctorId,
-      date,
-      startTime,
-      endTime,
-    })
 
-    res.status(201).json(appointment)
+    res.status(201).json({ message: 'Rendez-vous pris avec succès', appointment });
   } catch (error) {
-    console.error("Book appointment error:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({ message: 'Erreur de prendre de rendez-vous', error: error.message });
   }
-}
-
-// Get patient's appointments
-export const getPatientAppointments = async (req, res) => {
-  try {
-    // Ensure patient can only see their own appointments
-    if (req.user.role !== "patient") {
-      return res.status(403).json({ message: "Unauthorized" })
-    }
-
-    const appointments = await Appointment.find({ patientId: req.user.id }).sort({ date: 1, startTime: 1 })
-
-    res.json(appointments)
-  } catch (error) {
-    console.error("Get appointments error:", error)
-    res.status(500).json({ message: "Server error" })
-  }
-}
-
-// Get doctor's appointments
-export const getDoctorAppointments = async (req, res) => {
-  try {
-    // Ensure doctor can only see their own appointments
-    if (req.user.role !== "doctor") {
-      return res.status(403).json({ message: "Unauthorized" })
-    }
-
-    const appointments = await Appointment.find({ doctorId: req.user.id }).sort({ date: 1, startTime: 1 })
-
-    res.json(appointments)
-  } catch (error) {
-    console.error("Get appointments error:", error)
-    res.status(500).json({ message: "Server error" })
-  }
-}
-
-// Get appointment by ID
-export const getAppointmentById = async (req, res) => {
-  try {
-    const appointment = await Appointment.findById(req.params.id)
-
-    if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" })
-    }
-
-    // Ensure user can only see their own appointments
-    if (
-      (req.user.role === "patient" && appointment.patientId !== req.user.id) ||
-      (req.user.role === "doctor" && appointment.doctorId !== req.user.id)
-    ) {
-      return res.status(403).json({ message: "Unauthorized" })
-    }
-
-    res.json(appointment)
-  } catch (error) {
-    console.error("Get appointment error:", error)
-    res.status(500).json({ message: "Server error" })
-  }
-}
+};
 
 // Cancel appointment
-export const cancelAppointment = async (req, res) => {
+exports.annulerRendezvous = async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id)
+    // if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
+    //   return res.status(400).json({ message: "ID invalide" });
+    // }
+    const appointment = await Rendezvous.findById(appointmentId);
 
+    
     if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" })
+      console.log('Rendez-vous introuvable');
+      return res.status(404).json({ message: 'Rendez-vous introuvable' });
     }
 
-    // Ensure only the patient who booked or the doctor can cancel
-    if (
-      (req.user.role === "patient" && appointment.patientId !== req.user.id) ||
-      (req.user.role === "medcin" && appointment.doctorId !== req.user.id)
-    ) {
-      return res.status(403).json({ message: "Unauthorized" })
+    if (appointment.status === 'annuler') {
+      return res.status(400).json({ message: 'Rendez-vous dejà annuler' });
     }
 
-    // Update appointment status
-    appointment.status = "canceled"
-    await appointment.save()
+    appointment.status = 'annuler';
+    await appointment.save();
 
-    // Update availability status in Doctors Service
-    try {
-      await axios.patch(
-        `${DOCTORS_SERVICE_URL}/availabilities/${appointment.availabilityId}`,
-        { is_booked: false, appointment_id: null },
-        {
-          headers: { Authorization: req.headers.authorization },
-        },
-      )
-    } catch (error) {
-      console.error("Error updating availability:", error)
-    }
-
-    // Publish appointment.canceled event
-    await publishMessage("appointment.canceled", {
-      appointmentId: appointment._id,
-      patientId: appointment.patientId,
-      doctorId: appointment.doctorId,
-      canceledBy: req.user.role,
-      cancelerId: req.user.id,
-    })
-
-    res.json(appointment)
+ 
+    res.status(200).json({ message: 'Appointment annuler avec succes ' });
   } catch (error) {
-    console.error("Cancel appointment error:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({ message: 'Erreur de annulation', error: error.message });
   }
-}
+};
 
-// Update appointment status (e.g., mark as completed)
-export const updateAppointmentStatus = async (req, res) => {
+// Reprogram appointment
+exports.reprogrammerRendezvous = async (req, res) => {
   try {
-    const { status } = req.body
+    const { appointmentId } = req.params;
+    const { availabilityId, datedebut, datefin } = req.body;
 
-    if (!["scheduled", "completed", "canceled"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" })
-    }
-
-    const appointment = await Appointment.findById(req.params.id)
-
+    const appointment = await Rendezvous.findById(appointmentId);
     if (!appointment) {
-      return res.status(404).json({ message: "Appointment not found" })
+      return res.status(404).json({ message: 'Appointment not found' });
     }
 
-    // Only doctors can mark appointments as completed
-    if (status === "completed" && req.user.role !== "doctor") {
-      return res.status(403).json({ message: "Only doctors can mark appointments as completed" })
+    // Check new availability
+    // try {
+    //   const availabilityResponse = await axios.get(
+    //     `http://localhost:8000/api/availability/${availabilityId}`
+    //   );
+      
+    //   if (!availabilityResponse.data.isAvailable) {
+    //     return res.status(400).json({ message: 'Le creneau horaire selectionne ne est pas disponible' });
+    //   }
+    // } catch (error) {
+    //   return res.status(500).json({ message: 'Error de la disponibilité', error: error.message });
+    // }
+
+    const isAvailable = true; 
+
+    if (!isAvailable) {
+      return res.status(400).json({ message: 'Le creneau horaire selectionne ne est pas disponible' });
     }
 
-    // Ensure only the patient who booked or the doctor can update
-    if (
-      (req.user.role === "patient" && appointment.patientId !== req.user.id) ||
-      (req.user.role === "doctor" && appointment.doctorId !== req.user.id)
-    ) {
-      return res.status(403).json({ message: "Unauthorized" })
-    }
+    // Update appointment
+    appointment.availabilityId = availabilityId;
+    appointment.datedebut = datedebut;
+    appointment.datefin = datefin;
+    appointment.status = 'encours';
+    await appointment.save();
 
-    // Update appointment status
-    appointment.status = status
-    await appointment.save()
+  
 
-    // If canceled, update availability
-    if (status === "canceled") {
-      try {
-        await axios.patch(
-          `${DOCTORS_SERVICE_URL}/availabilities/${appointment.availabilityId}`,
-          { is_booked: false, appointment_id: null },
-          {
-            headers: { Authorization: req.headers.authorization },
-          },
-        )
-
-        // Publish appointment.canceled event
-        await publishMessage("appointment.canceled", {
-          appointmentId: appointment._id,
-          patientId: appointment.patientId,
-          doctorId: appointment.doctorId,
-          canceledBy: req.user.role,
-          cancelerId: req.user.id,
-        })
-      } catch (error) {
-        console.error("Error updating availability:", error)
-      }
-    }
-
-    res.json(appointment)
+    res.status(200).json({ message: 'Rendez-vous reprogrammé avec succès', appointment });
   } catch (error) {
-    console.error("Update appointment error:", error)
-    res.status(500).json({ message: "Server error" })
+    res.status(500).json({ message: 'Error de reprogrammation du rendez-vous', error: error.message });
   }
-}
+};
+
+// Get appointment history
+exports.historyrendezvous = async (req, res) => {
+  try {
+    // const user = req.user; 
+    const user = {
+      id : 1,
+      role : 'patient'
+    }
+
+    let appointments;
+
+    if (user.role === 'patient') {
+      // Un patient ne peut voir que ses propres rendez-vous
+      appointments = await Rendezvous.find({ patientId: user.id })
+        .sort({ createdAt: -1 })
+        .select('-__v');
+    } else if (user.role === 'medcin') {
+      // Un médecin ne peut voir que ses propres rendez-vous
+      appointments = await Rendezvous.find({ medcinId: user.id })
+        .sort({ createdAt: -1 })
+        .select('-__v');
+    } else {
+      return res.status(403).json({ message: 'Accès refusé' });
+    }
+
+    res.status(200).json({ appointments });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur lors de la récupération de l’historique', error: error.message });
+  }
+};
+
+

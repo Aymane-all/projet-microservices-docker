@@ -1,5 +1,5 @@
-// Role-based middleware
-export const checkRole = (role) => {
+
+const checkRole = (role) => {
     return (req, res, next) => {
       if (!req.user) {
         return res.status(401).json({ message: "Authentication required" })
@@ -14,7 +14,7 @@ export const checkRole = (role) => {
   }
   
   // Check if user is a patient
-  export const isPatient = (req, res, next) => {
+  const isPatient = (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" })
     }
@@ -27,7 +27,7 @@ export const checkRole = (role) => {
   }
   
   // Check if user is a doctor
-  export const isMedcin = (req, res, next) => {
+  const isMedcin = (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" })
     }
@@ -40,7 +40,7 @@ export const checkRole = (role) => {
   }
   
   // Check if user is either a patient or a medcin
-  export const isPatientOrMedcin = (req, res, next) => {
+  const isPatientOrMedcin = (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" })
     }
@@ -52,3 +52,5 @@ export const checkRole = (role) => {
     next()
   }
   
+
+  module.exports = { checkRole, isPatient, isMedcin, isPatientOrMedcin };

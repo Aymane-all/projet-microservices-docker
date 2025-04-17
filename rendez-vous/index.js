@@ -5,12 +5,14 @@ const cors = require('cors');
 const app = express();
 const PORT = 5000; 
 
-
 app.use(cors());
 app.use(express.json());
 
+const { connectRabbitMQ } = require('./utils/rabbitmq');
 
-app.use('/api/appointments', require('./routes/appointments'));
+const routes = require('./routes/routerendez');
+app.use('/api/rendez-vous', routes);
+
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/rendez-vous')
@@ -21,3 +23,5 @@ mongoose.connect('mongodb://localhost:27017/rendez-vous')
 app.listen(PORT, () => {
   console.log(`Rendez-vous Service running on port ${PORT}`);
 });
+
+connectRabbitMQ();

@@ -1,33 +1,16 @@
-import express from "express"
-import { verifyToken } from "../middlewares/auth.js"
-import { isPatient, isDoctor, isPatientOrDoctor } from "../middlewares/role.js"
-import {
-  bookAppointment,
-  getPatientAppointments,
-  getDoctorAppointments,
-  getAppointmentById,
-  cancelAppointment,
-  updateAppointmentStatus,
-} from "../controllers/appointmentController.js"
+const express = require('express');
+const router = express.Router();
+const {priserRendezvous, annulerRendezvous, reprogrammerRendezvous, historyrendezvous} = require('../controllers/rendez-vousController');
+const verifyToken = require('../middlewares/auth');
+const { isPatient, isPatientOrMedcin } = require('../middlewares/role');
 
-const router = express.Router()
 
-// Book a new appointment (patients only)
-router.post("/", verifyToken, isPatient, bookAppointment)
+router.post('/priser',verifyToken,isPatient,priserRendezvous); // priser un rendez-vous
 
-// Get patient's appointments
-router.get("/patient", verifyToken, isPatient, getPatientAppointments)
+router.put('/annuler/:appointmentId',verifyToken,isPatient, annulerRendezvous);  // annule un rendez-vous
 
-// Get doctor's appointments
-router.get("/doctor", verifyToken, isDoctor, getDoctorAppointments)
+router.put('/reprogram/:appointmentId',verifyToken,isPatient,reprogrammerRendezvous); // reprograme un rendez-vous
 
-// Get appointment by ID (both patient and doctor can access their own appointments)
-router.get("/:id", verifyToken, isPatientOrDoctor, getAppointmentById)
+router.get('/history',historyrendezvous); // affiche l'historique des rendez-vous
 
-// Cancel appointment (both patient and doctor can cancel)
-router.patch("/:id/cancel", verifyToken, isPatientOrDoctor, cancelAppointment)
-
-// Update appointment status (both patient and doctor can update with restrictions)
-router.patch("/:id/status", verifyToken, isPatientOrDoctor, updateAppointmentStatus)
-
-export default router
+module.exports = router;
