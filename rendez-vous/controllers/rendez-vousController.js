@@ -5,10 +5,10 @@ const mongoose = require('mongoose');
 // Book an appointment
 exports.priserRendezvous = async (req, res) => {
   try {
-    const {userId ,patientId, medcinId, availabilityId, datedebut, datefin } = req.body;
+    const {patientId, medcinId, availabilityId, datedebut, datefin } = req.body;
 
     // Validate required fields
-    if (userId,!patientId || !medcinId || !availabilityId || !datedebut || !datefin) {
+    if (!patientId || !medcinId || !availabilityId || !datedebut || !datefin) {
       return res.status(400).json({ message: 'veuillez remplir tous les champs' });
     }
 
@@ -40,7 +40,6 @@ exports.priserRendezvous = async (req, res) => {
 
     // Create new appointment
     const appointment = new Rendezvous({
-      userId,
       patientId,
       medcinId,
       availabilityId,
@@ -61,11 +60,10 @@ exports.priserRendezvous = async (req, res) => {
 // Cancel appointment
 exports.annulerRendezvous = async (req, res) => {
   try {
-    // if (!mongoose.Types.ObjectId.isValid(appointmentId)) {
-    //   return res.status(400).json({ message: "ID invalide" });
-    // }
-    const appointment = await Rendezvous.findById(appointmentId);
+   
+    const appointmentId = req.params.id;
 
+    const appointment = await Rendezvous.findById(appointmentId); 
     
     if (!appointment) {
       console.log('Rendez-vous introuvable');
@@ -89,7 +87,7 @@ exports.annulerRendezvous = async (req, res) => {
 // Reprogram appointment
 exports.reprogrammerRendezvous = async (req, res) => {
   try {
-    const { appointmentId } = req.params;
+    const  appointmentId  = req.params.id;
     const { availabilityId, datedebut, datefin } = req.body;
 
     const appointment = await Rendezvous.findById(appointmentId);
@@ -134,11 +132,6 @@ exports.reprogrammerRendezvous = async (req, res) => {
 // Get appointment history
 exports.historyrendezvous = async (req, res) => {
   try {
-    // const user = req.user; 
-    const user = {
-      id : 1,
-      role : 'patient'
-    }
 
     let appointments;
 

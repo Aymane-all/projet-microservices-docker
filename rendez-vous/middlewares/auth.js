@@ -4,6 +4,7 @@ const JWT_SECRET = 'secret'; // same as Auth Service
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
+  console.log("Token reçu:", authHeader);
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }

@@ -1,10 +1,6 @@
 const mongoose = require("mongoose")
 
 const rendezvousSchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-  },
   patientId: {
     type: String,
     required: true,
@@ -27,7 +23,7 @@ const rendezvousSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["encours", "complete", "annuler"],
+    enum: ["encours", "confirmer", "annuler"],
     default: "encours",
   },
   createdAt: {

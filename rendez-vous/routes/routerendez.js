@@ -5,11 +5,11 @@ const verifyToken = require('../middlewares/auth');
 const { isPatient, isPatientOrMedcin } = require('../middlewares/role');
 
 
-router.post('/priser',verifyToken,isPatient,priserRendezvous); // priser un rendez-vous
+router.post('/priser',verifyToken,priserRendezvous); // priser un rendez-vous
 
-router.put('/annuler/:appointmentId',verifyToken,isPatient, annulerRendezvous);  // annule un rendez-vous
+router.put('/annuler/:id',verifyToken,annulerRendezvous);  // annule un rendez-vous
 
-router.put('/reprogram/:appointmentId',verifyToken,isPatient,reprogrammerRendezvous); // reprograme un rendez-vous
+router.put('/reprogram/:id',reprogrammerRendezvous); // reprograme un rendez-vous
 
 router.get('/history',historyrendezvous); // affiche l'historique des rendez-vous
 
