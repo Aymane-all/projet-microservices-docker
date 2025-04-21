@@ -20,7 +20,7 @@ function Login() {
 
       localStorage.setItem("token", response.data.token);
 
-      const role = response.data.user.role.toLowerCase();
+      const role = response.data.user.role;
       if (role === "medecin") {
         console.log("Redirecting to /medecin");
         // navigate("/medecin");
