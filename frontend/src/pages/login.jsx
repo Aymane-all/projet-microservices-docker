@@ -51,7 +51,7 @@ function Login() {
 
         {/* Login Form Section */}
         <div className="flex-1 p-6 md:p-10 text-center">
-          <h1 className="text-base sm:text-lg md:text-xl mb-4 text-gray-700">🩺 Bienvenue sur RVmedical !</h1>
+          <h1 className="text-base sm:text-lg md:text-xl mb-4 text-gray-700">🩺 Bienvenue sur RVmedical sela trouver tout!</h1>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6">Connexion</h2>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <label className="text-left text-gray-600 text-sm sm:text-base">Email</label>
