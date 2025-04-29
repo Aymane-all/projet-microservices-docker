@@ -8,24 +8,36 @@ const connectRabbitMQ = async () => {
   try {
     const connection = await amqp.connect(RABBITMQ_URL);
     channel = await connection.createChannel();
-    await channel.assertQueue("enrollments", { durable: true });
-    console.log("[RabbitMQ] Connected and channel ready");
-  } catch (err) {
-    console.error("[RabbitMQ] Connection failed:", err.message);
+    await channel.assertExchange('appointments', 'topic', { durable: true });
+    
+    console.log('Connected to RabbitMQ');
+    return channel;
+  } catch (error) {
+    console.error('RabbitMQ connection error:', error);
+    throw error;
   }
 };
 
-const publishEnrollment = (data) => {
-  if (!channel) {
-    console.error("[RabbitMQ] Channel not ready");
-    return;
+const publishEvent = async (routingKey, message) => {
+  try {
+    if (!channel) {
+      await connectRabbitMQ();
+    }
+    
+    channel.publish(
+      'appointments',
+      routingKey,
+      Buffer.from(JSON.stringify(message))
+    );
+    
+    console.log(`Event published: ${routingKey}`);
+  } catch (error) {
+    console.error('Error publishing event:', error);
+    throw error;
   }
-
-  const buffer = Buffer.from(JSON.stringify(data));
-  channel.sendToQueue("enrollments", buffer);
 };
 
 module.exports = {
   connectRabbitMQ,
-  publishEnrollment,
+  publishEvent
 };
