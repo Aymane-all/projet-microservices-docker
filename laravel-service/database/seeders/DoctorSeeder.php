@@ -12,19 +12,21 @@ class DoctorSeeder extends Seeder
         $doctors = [
             [
                 'name' => 'Dr. John Smith',
-                'speciality' => 'Cardiology',
+                'specialty' => 'Cardiology',
+                'email' => 'john.smith@medical.com',
+                'phone' => '+33123456789',
                 'location' => 'Paris',
                 'description' => 'Experienced cardiologist with 15 years of practice',
-                'phone_number' => '+33123456789',
-                'email' => 'john.smith@medical.com'
+                'photo' => 'doctors/john-smith.jpg'
             ],
             [
                 'name' => 'Dr. Marie Dubois',
-                'speciality' => 'Pediatrics',
+                'specialty' => 'Pediatrics',
+                'email' => 'marie.dubois@medical.com',
+                'phone' => '+33987654321',
                 'location' => 'Lyon',
                 'description' => 'Specialist in pediatric care',
-                'phone_number' => '+33987654321',
-                'email' => 'marie.dubois@medical.com'
+                'photo' => 'doctors/marie-dubois.jpg'
             ],
         ];
 
