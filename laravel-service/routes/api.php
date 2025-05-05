@@ -16,7 +16,8 @@ Route::get('/doctors/{doctor}', [DoctorController::class, 'show']);
 Route::get('/doctors/{doctor}/slots', [SlotController::class, 'index']);
 
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('jwt')->group(function () {
+    
     // Doctor routes
     Route::post('/doctors', [DoctorController::class, 'store']);
     Route::put('/doctors/{doctor}', [DoctorController::class, 'update']);
