@@ -1,6 +1,56 @@
+post register
+http://localhost:5000/api/auth/register
+
 {
     "name" : "Mohamed",
     "email" : "admin2@gmail.com",
     "password" : "admin123",
     "role" : "admin"
 }
+
+{
+    "name" : "imane el"
+    "email" : "imane2@gmail.com",
+    "password" : "password123"
+}
+
+
+post login 
+
+http://localhost:5000/api/auth/login
+
+// pour admin 
+
+{
+    "email" : "admin2@gmail.com",
+    "password" : "admin123"
+}
+
+{
+    "_id": "6815303a6b17c3abaa4bfb80",
+    "name": "Mohamed",
+    "email": "admin@gmail.com",
+    "role": "admin",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTUzMDNhNmIxN2MzYWJhYTRiZmI4MCIsInJvbGUiOiJhZG1pbiIsIm5hbWUiOiJNb2hhbWVkIiwiaWF0IjoxNzQ2NTU2MzQwLCJleHAiOjE3NDkxNDgzNDB9.wImz1ifZacCFMlg-dsbylTJyrHaYvZkEE9t0xgLnzjE"
+}
+
+// pour patient
+
+
+{
+    "email" : "imane2@gmail.com",
+    "password" : "password123"
+}
+
+{
+    "_id": "68168461f133b369dd859082",
+    "name": "imane el",
+    "email": "imane2@gmail.com",
+    "role": "patient",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MTY4NDYxZjEzM2IzNjlkZDg1OTA4MiIsInJvbGUiOiJwYXRpZW50IiwibmFtZSI6ImltYW5lIGVsIiwiaWF0IjoxNzQ2NTU2Mjg0LCJleHAiOjE3NDkxNDgyODR9.QMncCwpZBOadGtHtYMu6ZPHXX8WN4HypfiNUvRL9pok"
+}
+
+
+//
+
+
