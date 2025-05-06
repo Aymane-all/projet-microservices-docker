@@ -1,0 +1,26 @@
+put  updateSlotAvailability
+
+http://127.0.0.1:8000/api/slots/1
+
+{
+  "is_available": true
+}
+
+get getAppointmentById
+
+http://localhost:5002/api/appointments/6818bf7985be38fc7a39cbe1
+
+
+post bookAppointment
+
+http://localhost:5002/api/appointments
+
+{
+  "doctorId": 2,
+  "slotId": 43,
+  "notes": "Consultation pour mon malade"
+}
+
+get getUserAppointments
+
+http://localhost:5002/api/appointments

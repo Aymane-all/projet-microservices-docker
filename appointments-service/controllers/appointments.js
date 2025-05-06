@@ -194,14 +194,14 @@ const cancelAppointment = async (req, res) => {
     }
 
     // Check if appointment is already canceled or completed
-    if (appointment.status !== 'scheduled') {
+    if (appointment.status !== 'programmer') {
       return res.status(400).json({
         message: `Cannot cancel an appointment that is ${appointment.status}`,
       });
     }
 
     // Update appointment status
-    appointment.status = 'canceled';
+    appointment.status = 'annuler';
     await appointment.save();
 
     // Make the slot available again
@@ -242,14 +242,14 @@ const completeAppointment = async (req, res) => {
     }
 
     // Check if appointment is already canceled or completed
-    if (appointment.status !== 'scheduled') {
+    if (appointment.status !== 'programmer') {
       return res.status(400).json({
         message: `Cannot complete an appointment that is ${appointment.status}`,
       });
     }
 
     // Update appointment status
-    appointment.status = 'completed';
+    appointment.status = 'reserver';
     await appointment.save();
 
     res.json(appointment);
