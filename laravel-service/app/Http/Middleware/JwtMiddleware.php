@@ -28,10 +28,13 @@ class JwtMiddleware
             
             $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
             
-            // Make user data available in the request
-            $request->merge(['user' => $decoded]);
+            // Convertir stdClass en tableau
+            $decodedArray = (array) $decoded;
             
-            // Check roles if specified
+            // Ajouter les données décodées à la requête
+            $request->merge(['user' => $decodedArray]);
+            
+            // Vérifier les rôles si spécifiés
             if (!empty($roles) && !in_array($decoded->role, $roles)) {
                 return response()->json(['message' => 'Forbidden'], 403);
             }
