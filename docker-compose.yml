@@ -1,0 +1,123 @@
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - app-network
+    restart: always
+
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    restart: always
+
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    env_file:
+      - ./auth-service/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    restart: on-failure
+    command: >
+      sh -c "
+        echo 'Waiting for MongoDB to be ready...'
+        sleep 15
+        node server.js
+      "
+
+  appointments-service:
+    build: ./appointments-service
+    container_name: appointments-service
+    env_file:
+      - ./appointments-service/.env
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - app-network
+    restart: on-failure
+    command: >
+      sh -c "
+        echo 'Waiting for MongoDB and RabbitMQ to be ready...'
+        sleep 20
+        node server.js
+      "
+
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    env_file:
+      - ./notification-service/.env
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+    restart: on-failure
+    command: >
+      sh -c "
+        echo 'Waiting for RabbitMQ to be ready...'
+        sleep 15
+        node server.js
+      "
+
+  laravel-service:
+    build: ./laravel-service
+    container_name: laravel-service
+    env_file:
+      - ./laravel-service/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+    restart: on-failure
+
+  frontend:
+    build: ./project_first_v -(js)
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - auth-service
+      - laravel-service
+      - appointments-service
+    networks:
+      - app-network
+    restart: on-failure
+
+networks:
+  app-network:
+    driver: bridge

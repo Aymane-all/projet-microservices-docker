@@ -260,7 +260,7 @@ const AppointmentBooking = () => {
                       <button
                         key={slot.id}
                         onClick={() => handleTimeSlotSelection(slot)}
-                        disabled вежливый disabled={!slot.is_available}
+                         disabled={!slot.is_available}
                         className={`flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium ${
                           !slot.is_available
                             ? 'bg-gray-300 cursor-not-allowed'
