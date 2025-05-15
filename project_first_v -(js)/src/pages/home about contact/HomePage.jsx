@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Calendar, User, Clock, Shield, Phone } from 'lucide-react';
+import { Search, Calendar, User, Clock, Shield, Phone, Heart, CheckCircle, Star } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../context/AuthContext';
+import MedicalNews from '../../components/home/MedicalNews';
 
 const HomePage = () => {
   const { isAuthenticated, user } = useAuth();
@@ -16,35 +17,38 @@ const HomePage = () => {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary-500 to-secondary-600">
+      <div className="relative overflow-hidden bg-gradient-to-r from-primary-600 to-secondary-500 shadow-xl">
         <div className="max-w-7xl mx-auto">
           <div className="relative z-10 pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
             <main className="pt-10 mx-auto max-w-7xl px-4 sm:pt-12 sm:px-6 md:pt-16 lg:pt-20 lg:px-8 xl:pt-28">
               <div className="sm:text-center lg:text-left">
-                <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                <h1 className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl animate-fade-in">
                   <span className="block xl:inline">Healthcare that</span>{' '}
-                  <span className="block text-accent-400 xl:inline">works for you</span>
+                  <span className="block text-accent-300 xl:inline">works for you</span>
                 </h1>
-                <p className="mt-3 text-base text-gray-100 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
+                <p className="mt-3 text-base text-gray-100 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 animate-fade-in animation-delay-200">
                   Connect with top doctors online, book appointments, and manage your healthcare journey - all in one place.
                 </p>
-                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start animate-fade-in animation-delay-300">
                   <div className="rounded-md shadow">
                     <Link
                       to={getStartedLink()}
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10"
+                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-all duration-300 transform hover:scale-105 shadow-md"
                     >
                       Get Started
                     </Link>
                   </div>
-                  <div className="mt-3 sm:mt-0 sm:ml-3">
-                    <Link
-                      to="/login"
-                      className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-700 hover:bg-primary-800 md:py-4 md:text-lg md:px-10"
-                    >
-                      Sign In
-                    </Link>
-                  </div>
+                  {/* Afficher le bouton Sign In uniquement si non connecté */}
+                  {!isAuthenticated && (
+                    <div className="mt-3 sm:mt-0 sm:ml-3">
+                      <Link
+                        to="/login"
+                        className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-700 hover:bg-primary-800 md:py-4 md:text-lg md:px-10 transition-all duration-300 transform hover:scale-105 shadow-md"
+                      >
+                        Sign In
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </main>
@@ -165,7 +169,7 @@ const HomePage = () => {
       </div>
 
       {/* Benefits section */}
-      <div className="py-16 bg-gray-50">
+      <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:text-center">
             <h2 className="text-base font-semibold text-primary-600 tracking-wide uppercase">Why Choose Us</h2>
@@ -178,7 +182,7 @@ const HomePage = () => {
           </div>
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center bg-gray-50 p-6 rounded-lg shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:scale-[1.02]">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
                 <Clock size={28} />
               </div>
@@ -188,7 +192,7 @@ const HomePage = () => {
               </p>
             </div>
 
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center bg-gray-50 p-6 rounded-lg shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:scale-[1.02]">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
                 <Shield size={28} />
               </div>
@@ -198,7 +202,7 @@ const HomePage = () => {
               </p>
             </div>
 
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center bg-gray-50 p-6 rounded-lg shadow-card hover:shadow-card-hover transition-all duration-300 transform hover:scale-[1.02]">
               <div className="flex items-center justify-center h-16 w-16 rounded-full bg-primary-100 text-primary-600">
                 <Phone size={28} />
               </div>
@@ -210,6 +214,9 @@ const HomePage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Medical News Section */}
+      <MedicalNews count={3} />
     </div>
   );
 };

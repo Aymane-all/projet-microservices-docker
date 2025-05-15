@@ -5,19 +5,11 @@ const { publishMessage } = require('../utils/rabbitmq');
 // Helper function to check slot availability
 const checkSlotAvailability = async (doctorId, slotId) => {
   try {
-  
-    // Fetch all slots for the doctor
     const response = await axios.get(`http://127.0.0.1:8000/api/doctors/${doctorId}/slots`);
-    console.log('Response:', response.data);
-    
-    // Find the slot with the given slotId
     const slot = response.data.find((slot) => slot.id === slotId);
-    console.log('Found slot:', slot);
-    
     return slot ? slot.is_available : false;
   } catch (error) {
     console.error('Error checking slot availability:', error.message);
-    console.error('Error details:', error.response ? error.response.data : 'No response data');
     return false;
   }
 };
@@ -87,7 +79,7 @@ const bookAppointment = async (req, res) => {
       return res.status(404).json({ message: 'Slot not found' });
     }
 
-    // Create appointment
+    // Create appointment with 'reserver' status
     const appointment = new Appointment({
       patientId: req.user.id,
       patientName: req.user.name,
@@ -97,6 +89,7 @@ const bookAppointment = async (req, res) => {
       date: slot.date,
       startTime: slot.start_time,
       endTime: slot.end_time,
+      status: 'reserver',
       notes,
     });
 
@@ -115,6 +108,8 @@ const bookAppointment = async (req, res) => {
       date: appointment.date,
       startTime: appointment.startTime,
       endTime: appointment.endTime,
+      status: appointment.status,
+      notes: appointment.notes,
     });
 
     res.status(201).json(appointment);
@@ -130,13 +125,11 @@ const getUserAppointments = async (req, res) => {
     let appointments;
 
     if (req.user.role === 'patient') {
-      // Patients can only see their own appointments
       appointments = await Appointment.find({ patientId: req.user.id }).sort({
         date: 1,
         startTime: 1,
       });
     } else if (req.user.role === 'doctor') {
-      // Doctors can only see appointments for them
       appointments = await Appointment.find({ doctorId: req.user.id }).sort({
         date: 1,
         startTime: 1,
@@ -194,7 +187,7 @@ const cancelAppointment = async (req, res) => {
     }
 
     // Check if appointment is already canceled or completed
-    if (appointment.status !== 'programmer') {
+    if (appointment.status === 'annuler' || appointment.status === 'confirmer') {
       return res.status(400).json({
         message: `Cannot cancel an appointment that is ${appointment.status}`,
       });
@@ -227,7 +220,7 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-// @desc    Mark an appointment as completed
+// @desc    Mark an appointment as completed (optional for doctors)
 const completeAppointment = async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id);
@@ -237,20 +230,32 @@ const completeAppointment = async (req, res) => {
     }
 
     // Check if doctor is authorized to complete this appointment
-    if (appointment.doctorId !== req.user.id) {
+    if (req.user.role !== 'doctor' || appointment.doctorId !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to complete this appointment' });
     }
 
     // Check if appointment is already canceled or completed
-    if (appointment.status !== 'programmer') {
+    if (appointment.status === 'annuler' || appointment.status === 'confirmer') {
       return res.status(400).json({
         message: `Cannot complete an appointment that is ${appointment.status}`,
       });
     }
 
     // Update appointment status
-    appointment.status = 'reserver';
+    appointment.status = 'confirmer';
     await appointment.save();
+
+    // Publish appointment.completed event
+    await publishMessage('appointment.completed', {
+      appointmentId: appointment._id,
+      patientId: appointment.patientId,
+      patientName: appointment.patientName,
+      doctorId: appointment.doctorId,
+      doctorName: appointment.doctorName,
+      date: appointment.date,
+      startTime: appointment.startTime,
+      endTime: appointment.endTime,
+    });
 
     res.json(appointment);
   } catch (error) {

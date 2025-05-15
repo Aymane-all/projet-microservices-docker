@@ -3,7 +3,7 @@ http://localhost:5000/api/auth/register
 
 {
     "name" : "Mohamed",
-    "email" : "admin2@gmail.com",
+    "email" : "admin@gmail.com",
     "password" : "admin123",
     "role" : "admin"
 }
@@ -22,7 +22,7 @@ http://localhost:5000/api/auth/login
 // pour admin 
 
 {
-    "email" : "admin2@gmail.com",
+    "email" : "admin@gmail.com",
     "password" : "admin123"
 }
 
@@ -35,7 +35,6 @@ http://localhost:5000/api/auth/login
 }
 
 // pour patient
-
 
 {
     "email" : "imane2@gmail.com",
@@ -51,6 +50,45 @@ http://localhost:5000/api/auth/login
 }
 
 
-//
+// pour doctor 
+
+{
+    "email" : "DRaymane@gmail.com",
+    "password" : "doctor123"
+}
+
+{
+    "_id": "681bde832d6481c8eac698ac",
+    "name": "Aymane smith",
+    "email": "DRaymane@gmail.com",
+    "role": "doctor",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4MWJkZTgzMmQ2NDgxYzhlYWM2OThhYyIsInJvbGUiOiJkb2N0b3IiLCJuYW1lIjoiQXltYW5lIHNtaXRoIiwiaWF0IjoxNzQ2NjU3MTAxLCJleHAiOjE3NDkyNDkxMDF9.8OjavJI0ymGuG8oVCXY1014swG-kVGYD3nXHaA__HAU"
+}
+
+
+// register pour doctor 
+
+post  http://localhost:5000/api/auth/register-doctor
+
+
+
+
+{
+    "name" : "Aymane smith",
+    "email" : "DRaymane@gmail.com",
+    "password" : "doctor123"
+}
+
+
+
+{
+    "message": "Doctor registered successfully",
+    "doctor": {
+        "_id": "681bde832d6481c8eac698ac",
+        "name": "Aymane smith",
+        "email": "DRaymane@gmail.com",
+        "role": "doctor"
+    }
+}
 
 

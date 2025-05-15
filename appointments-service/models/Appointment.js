@@ -35,8 +35,8 @@ const AppointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['programmer', 'reserver', 'annuler'],
-    default: 'programmer'
+    enum: ['reserver', 'confirmer', 'annuler'],
+    required: true
   },
   notes: {
     type: String

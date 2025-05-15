@@ -1,52 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Search, 
-  Filter, 
-  Star, 
-  MapPin, 
-  Calendar,
-  ChevronDown,
-  X
-} from 'lucide-react';
+// src/pages/patient/DoctorSearch.jsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Star, MapPin, Calendar, ChevronDown, X } from 'lucide-react';
 import Button from '../../components/common/Button';
 import { getAllDoctors, getAllSpecialties } from '../../api/doctors';
 
 const DoctorSearch = () => {
+  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [specialties, setSpecialties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSpecialty, setSelectedSpecialty] = useState('');
+  const [selectedSpecialty, setSelectedSpecialty] = useState(''); // Now stores specialty name
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
+  // Mock login/logout (replace with your auth system)
+  const handleLogin = () => {
+    localStorage.setItem('token', 'mock-jwt-token');
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+  };
+
+  // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const [doctorsData, specialtiesData] = await Promise.all([
           getAllDoctors(),
-          getAllSpecialties()
+          getAllSpecialties(),
         ]);
-        setDoctors(doctorsData);
-        setSpecialties(specialtiesData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+
+        console.log('Raw Doctors data:', doctorsData);
+        console.log('Raw Specialties data:', specialtiesData);
+
+        const normalizedDoctors = Array.isArray(doctorsData)
+          ? doctorsData
+          : doctorsData?.data || [];
+        const normalizedSpecialties = Array.isArray(specialtiesData)
+          ? specialtiesData
+          : specialtiesData?.data || [];
+
+        console.log('Normalized Doctors:', normalizedDoctors);
+        console.log('Normalized Specialties:', normalizedSpecialties);
+
+        setDoctors(normalizedDoctors);
+        setSpecialties(normalizedSpecialties);
+      } catch (err) {
+        setError('Failed to load data. Please try again later.');
+        console.error('Error fetching data:', err);
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  const filteredDoctors = doctors.filter(doctor => {
-    const matchesSearch = doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          doctor.specialty.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSpecialty = !selectedSpecialty || doctor.specialty.id === selectedSpecialty;
+  // Filter doctors client-side
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesSearch =
+      (doctor?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (doctor?.specialty?.name || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSpecialty = !selectedSpecialty || (doctor?.specialty?.name || '') === selectedSpecialty;
     return matchesSearch && matchesSpecialty;
   });
 
+  // Log filtered doctors for debugging
+  useEffect(() => {
+    console.log('Filtered Doctors:', filteredDoctors);
+  }, [filteredDoctors]);
+
+  // Handle doctor selection
+  const handleDoctorSelect = (doctorId) => {
+    navigate(`/patient/book/${doctorId}`);
+  };
+
+  // Clear filters
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedSpecialty('');
@@ -59,6 +94,13 @@ const DoctorSearch = () => {
           <h1 className="text-3xl font-bold text-gray-900">Find Doctors</h1>
           <p className="mt-2 text-gray-600">Search for specialists and book appointments</p>
         </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
+            {error}
+          </div>
+        )}
 
         {/* Search and filter section */}
         <div className="bg-white p-4 rounded-lg shadow-sm mb-8 border border-gray-100">
@@ -75,7 +117,7 @@ const DoctorSearch = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <div className="md:w-64 relative">
               <button
                 type="button"
@@ -84,16 +126,18 @@ const DoctorSearch = () => {
               >
                 <div className="flex items-center">
                   <Filter className="h-4 w-4 mr-2" />
-                  <span>{selectedSpecialty ? specialties.find(s => s.id === selectedSpecialty)?.name : 'All Specialties'}</span>
+                  <span>{selectedSpecialty || 'All Specialties'}</span>
                 </div>
                 <ChevronDown className="h-4 w-4" />
               </button>
-              
+
               {filtersOpen && (
                 <div className="absolute z-10 mt-1 w-64 bg-white shadow-lg rounded-md py-1 border border-gray-200">
                   <div className="max-h-60 overflow-y-auto">
-                    <div 
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${!selectedSpecialty ? 'bg-primary-50 text-primary-700' : ''}`}
+                    <div
+                      className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                        !selectedSpecialty ? 'bg-primary-50 text-primary-700' : ''
+                      }`}
                       onClick={() => {
                         setSelectedSpecialty('');
                         setFiltersOpen(false);
@@ -101,25 +145,27 @@ const DoctorSearch = () => {
                     >
                       All Specialties
                     </div>
-                    {specialties.map(specialty => (
-                      <div 
-                        key={specialty.id} 
-                        className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${selectedSpecialty === specialty.id ? 'bg-primary-50 text-primary-700' : ''}`}
+                    {specialties.map((specialty) => (
+                      <div
+                        key={specialty?.id}
+                        className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                          selectedSpecialty === specialty?.name ? 'bg-primary-50 text-primary-700' : ''
+                        }`}
                         onClick={() => {
-                          setSelectedSpecialty(specialty.id);
+                          setSelectedSpecialty(specialty?.name || '');
                           setFiltersOpen(false);
                         }}
                       >
-                        {specialty.name}
+                        {specialty?.name || 'Unknown'}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            
+
             {(searchQuery || selectedSpecialty) && (
-              <Button 
+              <Button
                 variant="outline"
                 size="sm"
                 icon={<X size={16} />}
@@ -138,77 +184,93 @@ const DoctorSearch = () => {
           </div>
         ) : filteredDoctors.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredDoctors.map(doctor => (
-              <div 
-                key={doctor.id}
+            {filteredDoctors.map((doctor) => (
+              <div
+                key={doctor?.id}
                 className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 transition-transform hover:transform hover:scale-[1.01] hover:shadow-md"
               >
                 <div className="flex flex-col h-full">
                   <div className="relative">
-                    <img 
-                      src={doctor.profileImage || 'https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'} 
-                      alt={doctor.name}
+                    <img
+                      src={
+                        doctor?.profile_image ||
+                        'https://images.pexels.com/photos/5327585/pexels-photo-5327585.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+                      }
+                      alt={doctor?.name || 'Doctor'}
                       className="w-full h-48 object-cover"
                     />
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 to-transparent p-4">
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                          {doctor.specialty.name}
+                          {doctor?.specialty?.name || 'Unknown'}
                         </span>
                         <div className="flex items-center text-white">
                           <Star className="h-4 w-4 text-yellow-400 mr-1 fill-current" />
-                          <span className="text-sm">{doctor.rating}</span>
+                          <span className="text-sm">{doctor?.rating || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="p-6 flex-grow">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1">{doctor.name}</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                      {doctor?.name || 'Unknown Doctor'}
+                    </h3>
                     <div className="flex items-center text-gray-600 text-sm mb-3">
                       <MapPin className="h-4 w-4 mr-1" />
-                      <span>New York, NY</span>
+                      <span>{doctor?.location || 'New York, NY'}</span>
                     </div>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                      {doctor.about}
+                      {doctor?.about || 'No description available'}
                     </p>
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {doctor.qualifications.slice(0, 3).map((qualification, idx) => (
-                        <span 
-                          key={idx}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
-                        >
-                          {qualification}
-                        </span>
-                      ))}
-                      {doctor.qualifications.length > 3 && (
+                      {Array.isArray(doctor?.qualifications) && doctor.qualifications.length > 0 ? (
+                        <>
+                          {doctor.qualifications.slice(0, 3).map((qualification, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                            >
+                              {qualification}
+                            </span>
+                          ))}
+                          {doctor.qualifications.length > 3 && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              +{doctor.qualifications.length - 3} more
+                            </span>
+                          )}
+                        </>
+                      ) : (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          +{doctor.qualifications.length - 3} more
+                          No qualifications
                         </span>
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="p-6 pt-0 mt-auto">
                     <div className="flex justify-between items-center mb-4">
                       <div>
                         <span className="block text-xs text-gray-500">Consultation Fee</span>
-                        <span className="text-xl font-semibold text-gray-900">${doctor.consultationFee}</span>
+                        <span className="text-xl font-semibold text-gray-900">
+                          ${doctor?.consultation_fee || 'N/A'}
+                        </span>
                       </div>
                       <div>
                         <span className="block text-xs text-gray-500">Experience</span>
-                        <span className="text-lg font-medium text-gray-900">{doctor.experience} years</span>
+                        <span className="text-lg font-medium text-gray-900">
+                          {doctor?.experience ? `${doctor.experience} years` : 'N/A'}
+                        </span>
                       </div>
                     </div>
-                    <Link to={`/patient/book/${doctor.id}`}>
-                      <Button 
-                        variant="primary" 
-                        fullWidth
-                        icon={<Calendar size={16} />}
-                      >
-                        Book Appointment
-                      </Button>
-                    </Link>
+                    <Button
+                      variant="primary"
+                      fullWidth
+                      icon={<Calendar size={16} />}
+                      onClick={() => handleDoctorSelect(doctor?.id)}
+                    >
+                      Book Appointment
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -221,7 +283,9 @@ const DoctorSearch = () => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-1">No doctors found</h3>
             <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
-            <Button variant="outline" onClick={clearFilters}>Clear Filters</Button>
+            <Button variant="outline" onClick={clearFilters}>
+              Clear Filters
+            </Button>
           </div>
         )}
       </div>

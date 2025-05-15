@@ -1,11 +1,13 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AppointmentProvider } from './context/AppointmentContext';
+import { NotificationProvider } from './context/NotificationContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import HomePage from './pages/home/HomePage';
+import PageTransition from './components/common/PageTransition';
+import Notification from './components/common/Notification';
+import HomePage from './pages/home about contact/HomePage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import PatientDashboard from './pages/patient/PatientDashboard';
@@ -15,21 +17,40 @@ import AppointmentBooking from './pages/patient/AppointmentBooking';
 import AppointmentHistory from './pages/patient/AppointmentHistory';
 import DoctorProfile from './pages/doctor/DoctorProfile';
 import DoctorAvailability from './pages/doctor/DoctorAvailability';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import NotFoundPage from './pages/NotFoundPage';
+import AboutPage from './pages/home about contact/About';
+import ContactPage from './pages/home about contact/Contact';
+
+// Composant pour faire défiler vers le haut lors des changements de page
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  
+  return null;
+}
 
 function App() {
   return (
     <AuthProvider>
-      <AppointmentProvider>
-        <Router>
+      <NotificationProvider>
+        <AppointmentProvider>
+          <Router>
+          <ScrollToTop />
           <div className="flex flex-col min-h-screen bg-gray-50">
             <Header />
             <main className="flex-grow">
-              <Routes>
+              <PageTransition transitionType="fade">
+                <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
                 
                 {/* Patient Routes */}
                 <Route 
@@ -91,27 +112,35 @@ function App() {
                   } 
                 />
                 
+                {/* Admin Routes */}
+                <Route 
+                  path="/admin/dashboard" 
+                  element={
+                    <ProtectedRoute role="admin">
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                
                 {/* 404 Route */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
+              </PageTransition>
             </main>
             <Footer />
-            <Toaster 
-              position="top-right"
+            <Notification 
               toastOptions={{
-                duration: 5000,
+                duration: 3000,
                 style: {
                   background: '#fff',
                   color: '#333',
-                  boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.1)',
-                  borderRadius: '8px',
-                  padding: '16px',
-                }
+                },
               }}
             />
           </div>
-        </Router>
-      </AppointmentProvider>
+          </Router>
+        </AppointmentProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

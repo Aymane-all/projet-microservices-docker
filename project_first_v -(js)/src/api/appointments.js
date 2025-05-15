@@ -1,115 +1,102 @@
-import { mockDoctors } from './mockData';
+import axios from 'axios';
 
-// Mock data for appointments
-let mockAppointments = [
-  {
-    id: '1',
-    doctorId: '1',
-    patientId: '2',
-    dateTime: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
-    endTime: new Date(new Date(new Date().setDate(new Date().getDate() + 3)).setMinutes(new Date().getMinutes() + 30)).toISOString(),
-    status: 'confirmed',
-    reason: 'Annual checkup',
-    createdAt: new Date().toISOString()
+const API_URL = 'http://localhost:5002/api';
+
+// Create axios instance with baseURL
+const nodeApi = axios.create({
+  baseURL: API_URL,
+});
+
+// Add request interceptor to include auth token in all requests
+nodeApi.interceptors.request.use(
+  (config) => {
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
+    
+    // If token exists, add it to the headers
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
   },
-  {
-    id: '2',
-    doctorId: '3',
-    patientId: '2',
-    dateTime: new Date(new Date().setDate(new Date().getDate() + 5)).toISOString(),
-    endTime: new Date(new Date(new Date().setDate(new Date().getDate() + 5)).setMinutes(new Date().getMinutes() + 30)).toISOString(),
-    status: 'pending',
-    reason: 'Cold symptoms',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    doctorId: '2',
-    patientId: '2',
-    dateTime: new Date(new Date().setDate(new Date().getDate() - 10)).toISOString(),
-    endTime: new Date(new Date(new Date().setDate(new Date().getDate() - 10)).setMinutes(new Date().getMinutes() + 30)).toISOString(),
-    status: 'completed',
-    reason: 'Skin rash',
-    notes: 'Prescribed antihistamine cream',
-    createdAt: new Date(new Date().setDate(new Date().getDate() - 15)).toISOString()
+  (error) => {
+    return Promise.reject(error);
   }
-];
+);
 
-// Helper to simulate API delay
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Get appointments for a patient
-export const fetchPatientAppointments = async (patientId) => {
-  await delay(800);
-
-  const appointments = mockAppointments.filter(apt => apt.patientId === patientId);
-
-  return appointments.map(apt => ({
-    ...apt,
-    doctor: mockDoctors.find(doc => doc.id === apt.doctorId)
-  }));
-};
-
-// Get appointments for a doctor
-export const fetchDoctorAppointments = async (doctorId) => {
-  await delay(800);
-
-  return mockAppointments.filter(apt => apt.doctorId === doctorId);
-};
-
-// Create a new appointment
 export const createNewAppointment = async (appointmentData) => {
-  await delay(1000);
-
-  if (!appointmentData.doctorId || !appointmentData.patientId || !appointmentData.dateTime || !appointmentData.endTime) {
-    throw new Error('Missing required appointment fields');
+  try {
+    const response = await nodeApi.post('/appointments', appointmentData);
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error('Error creating appointment:', error);
+    
+    // More descriptive error handling
+    if (error.response?.status === 401) {
+      throw new Error('Authentification requise. Veuillez vous reconnecter.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Vous n\'avez pas la permission de créer des rendez-vous.');
+    } else {
+      throw new Error(error.response?.data?.message || 'Échec de la création du rendez-vous');
+    }
   }
-
-  const newAppointment = {
-    id: `${mockAppointments.length + 1}`,
-    doctorId: appointmentData.doctorId,
-    patientId: appointmentData.patientId,
-    dateTime: appointmentData.dateTime,
-    endTime: appointmentData.endTime,
-    status: 'pending',
-    reason: appointmentData.reason || '',
-    notes: appointmentData.notes || '',
-    createdAt: new Date().toISOString(),
-    doctor: mockDoctors.find(doc => doc.id === appointmentData.doctorId)
-  };
-
-  mockAppointments.push(newAppointment);
-
-  return newAppointment;
 };
 
-// Cancel an appointment
+export const fetchPatientAppointments = async (patientId) => {
+  try {
+    const response = await nodeApi.get(`/patients/${patientId}/appointments`);
+    const data = response.data.data || response.data;
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Error fetching patient appointments:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Authentification requise. Veuillez vous reconnecter.');
+    }
+    throw new Error(error.response?.data?.message || 'Échec de la récupération des rendez-vous du patient');
+  }
+};
+
+export const fetchDoctorAppointments = async (doctorId) => {
+  try {
+    const response = await nodeApi.get(`/doctors/${doctorId}/appointments`);
+    const data = response.data.data || response.data;
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Error fetching doctor appointments:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Authentification requise. Veuillez vous reconnecter.');
+    }
+    throw new Error(error.response?.data?.message || 'Échec de la récupération des rendez-vous du médecin');
+  }
+};
+
 export const cancelExistingAppointment = async (appointmentId) => {
-  await delay(700);
-
-  const appointmentIndex = mockAppointments.findIndex(apt => apt.id === appointmentId);
-
-  if (appointmentIndex === -1) {
-    throw new Error('Appointment not found');
+  try {
+    const response = await nodeApi.delete(`/appointments/${appointmentId}`);
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error('Error cancelling appointment:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Authentification requise. Veuillez vous reconnecter.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Vous n\'avez pas la permission d\'annuler ce rendez-vous.');
+    }
+    throw new Error(error.response?.data?.message || 'Échec de l\'annulation du rendez-vous');
   }
-
-  mockAppointments[appointmentIndex].status = 'cancelled';
 };
 
-// Update an appointment
-export const updateAppointment = async (appointmentId, updates) => {
-  await delay(800);
-
-  const appointmentIndex = mockAppointments.findIndex(apt => apt.id === appointmentId);
-
-  if (appointmentIndex === -1) {
-    throw new Error('Appointment not found');
+export const updateAppointment = async (appointmentId, data) => {
+  try {
+    const response = await nodeApi.patch(`/appointments/${appointmentId}`, data);
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error('Error updating appointment:', error);
+    if (error.response?.status === 401) {
+      throw new Error('Authentification requise. Veuillez vous reconnecter.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Vous n\'avez pas la permission de modifier ce rendez-vous.');
+    }
+    throw new Error(error.response?.data?.message || 'Échec de la mise à jour du rendez-vous');
   }
-
-  mockAppointments[appointmentIndex] = {
-    ...mockAppointments[appointmentIndex],
-    ...updates
-  };
-
-  return mockAppointments[appointmentIndex];
 };

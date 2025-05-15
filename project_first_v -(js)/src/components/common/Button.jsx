@@ -14,23 +14,27 @@ const Button = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-colors';
+  const baseStyles = 'inline-flex items-center justify-center rounded-md font-medium transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]';
 
   const variantStyles = {
-    primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2',
-    secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 focus:ring-2 focus:ring-secondary-500/50 focus:ring-offset-2',
-    outline: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2',
+    primary: 'bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700 focus:ring-2 focus:ring-primary-500/50 focus:ring-offset-2 shadow-button hover:shadow-button-hover',
+    secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 focus:ring-2 focus:ring-secondary-500/50 focus:ring-offset-2 shadow-button hover:shadow-button-hover',
+    outline: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100 focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 hover:shadow-sm',
     ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200 focus:ring-2 focus:ring-gray-500/50',
-    danger: 'bg-error-500 text-white hover:bg-error-600 active:bg-error-700 focus:ring-2 focus:ring-error-500/50 focus:ring-offset-2'
+    accent: 'bg-accent-500 text-white hover:bg-accent-600 active:bg-accent-700 focus:ring-2 focus:ring-accent-500/50 focus:ring-offset-2 shadow-button hover:shadow-button-hover',
+    success: 'bg-success-500 text-white hover:bg-success-600 active:bg-success-700 focus:ring-2 focus:ring-success-500/50 focus:ring-offset-2 shadow-button hover:shadow-button-hover',
+    danger: 'bg-error-500 text-white hover:bg-error-600 active:bg-error-700 focus:ring-2 focus:ring-error-500/50 focus:ring-offset-2 shadow-button hover:shadow-button-hover'
   };
 
   const sizeStyles = {
-    sm: 'text-sm px-3 py-1.5',
-    md: 'text-base px-4 py-2',
-    lg: 'text-lg px-6 py-3'
+    xs: 'text-xs px-2 py-1 rounded',
+    sm: 'text-sm px-3 py-1.5 rounded-md',
+    md: 'text-base px-4 py-2 rounded-md',
+    lg: 'text-lg px-6 py-3 rounded-lg',
+    xl: 'text-xl px-8 py-4 rounded-lg'
   };
 
-  const disabledStyles = 'opacity-50 cursor-not-allowed pointer-events-none';
+  const disabledStyles = 'opacity-60 cursor-not-allowed pointer-events-none filter grayscale';
   const loadingStyles = 'relative text-transparent pointer-events-none';
   const fullWidthStyles = 'w-full';
 

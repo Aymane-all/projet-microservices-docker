@@ -35,15 +35,15 @@ const startService = async () => {
           // Send email to patient
           await sendEmail({
             to: `patient-${appointment.patientId}@example.com`, // In a real app, get email from user service
-            subject: 'Appointment Confirmation',
-            text: `Your appointment with Dr. ${appointment.doctorName} on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.startTime} has been confirmed.`
+            subject: 'rendez-vous Confirmer',
+            text: `Votre appointment avec Dr. ${appointment.doctorName} on ${new Date(appointment.date).toLocaleDateString()} de ${appointment.startTime} a ete confirmer.`
           });
           
           // Send email to doctor
           await sendEmail({
             to: `doctor-${appointment.doctorId}@example.com`, // In a real app, get email from user service
-            subject: 'Nouveaux Appointment a programmer',
-            text: `tu as un appointment avec ${appointment.patientName} on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.startTime}.`
+            subject: 'Nouveaux rendez-vous a reserver',
+            text: `Votre appointment avec ${appointment.patientName} le ${new Date(appointment.date).toLocaleDateString()} de ${appointment.startTime}.`
           });
           
           channel.ack(msg);
@@ -59,20 +59,20 @@ const startService = async () => {
       if (msg) {
         try {
           const appointment = JSON.parse(msg.content.toString());
-          console.log('Received cancellation notification:', appointment);
+          console.log('Notification deannulation reçue:', appointment);
           
           // Send email to patient
           await sendEmail({
             to: `patient-${appointment.patientId}@example.com`, // In a real app, get email from user service
-            subject: 'Appointment Cancellation',
-            text: `Your appointment with Dr. ${appointment.doctorName} on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.startTime} has been canceled.`
+            subject: 'Appointment annuler',
+            text: `Votre rendez-vous avec Dr. ${appointment.doctorName} le ${new Date(appointment.date).toLocaleDateString()} de ${appointment.startTime} a ete annuler.`
           });
           
           // Send email to doctor
           await sendEmail({
             to: `doctor-${appointment.doctorId}@example.com`, // In a real app, get email from user service
-            subject: 'Appointment Cancellation',
-            text: `Your appointment with ${appointment.patientName} on ${new Date(appointment.date).toLocaleDateString()} at ${appointment.startTime} has been canceled.`
+            subject: 'Appointment annuler',
+            text: `Votre rendez-vous avec ${appointment.patientName} le ${new Date(appointment.date).toLocaleDateString()} de ${appointment.startTime} a ete annuler.`
           });
           
           channel.ack(msg);

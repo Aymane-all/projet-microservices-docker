@@ -78,9 +78,11 @@ export default {
         },
       },
       animation: {
-        'fade-in': 'fadeIn 0.3s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
+        'fade-in': 'fadeIn 0.5s ease-in-out',
+        'slide-up': 'slideUp 0.5s ease-out',
         'pulse-subtle': 'pulseSubtle 2s infinite',
+        'scale-in': 'scaleIn 0.5s ease-out',
+        'bounce-in': 'bounceIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       },
       keyframes: {
         fadeIn: {
@@ -95,12 +97,33 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.8' },
         },
+        scaleIn: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        bounceIn: {
+          '0%': { transform: 'scale(0.8)', opacity: '0' },
+          '70%': { transform: 'scale(1.05)', opacity: '0.9' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
       },
       boxShadow: {
         'card': '0 2px 12px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 8px 24px rgba(0, 0, 0, 0.12)',
+        'button': '0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08)',
+        'button-hover': '0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities, theme, e }) {
+      const animationDelayUtilities = {};
+      for (let i = 1; i <= 10; i++) {
+        animationDelayUtilities[`.animation-delay-${i * 100}`] = {
+          'animation-delay': `${i * 0.1}s`,
+        };
+      }
+      addUtilities(animationDelayUtilities, ['responsive']);
+    },
+  ],
 };
